@@ -1,17 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-do list</title>
-</head>
-<body style ="background-color: black; color: white;">
-    <h1>to-do list</h1>
-    <form>
-        <input type="text" name="task" id="task" style="width:300px; height: 20px; padding: 5px; font: size 20px;">
-        <button type="submit">add</button>
-    </form>
-    
-    <div id="allTask"></div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo-list</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="./js/todo.js" defer></script>
+  </head>
+  <body class="Min-h-screen bg-[#f5f3ec] font-mono text-[#292b26]">
+    <main class="max=auto max-w-3xl px-5 py-12 sm:px-8">
+      <h1 class="sr-only">Todo-list</h1>
+
+      <form
+        id="todo-form"
+        class="flex item-center gap-4 border-b border-[#292b26] pb-4"
+      >
+        <span aria-hidden="true">+</span>
+
+        <label for="todo-input" class="sr-only">new task</label>
+        <input
+          id="todo-input"
+          type="text"
+          placeholder="what needs doing?"
+          maxlength="200"
+          autocomplete="off"
+          requiredclass="min-2-0 flex-1 bg-transparent py-3 outline-none placeholder:text-stone-500 focus-visible:ring-1 focus-visible:ring-stone-500"
+        />
+        <button
+          type="submit"
+          class="shrink-0 cursor-pointer bg-[#292b26] px-4 py-3 text-[#f5f3ec] hover:bg-stone-600"
+        >
+          [ add ]
+        </button>
+      </form>
+
+      <nav aria-label="Filter tasks" class="my-7 flex gap-6 text-sm">
+        <button
+          type="button"
+          data-filter="all"
+          aria-pressed="true"
+          class="cursor-pointer border-b border-current py-2"
+        >
+          all <span id="all-count">0</span>
+        </button>
+        <button
+          type="button"
+          data-filter="active"
+          aria-pressed="true"
+          class="cursor-pointer border-b border-transparent py-2 opacity-50"
+        >
+          active <span id="active-count">0</span>
+        </button>
+        <button
+          type="button"
+          data-filter="done"
+          aria-pressed="false"
+          class="cursor-pointer border-b border-transparent py-2 opacity-50"
+        >
+          done <span id="done-count">0</span>
+        </button>
+      </nav>
+
+      <ul id="allTask" class="border-t border-stone-300"></ul>
+
+      <p id="empty-message" class="py-10 text-sm text-stone-500">
+        No tasks yet. Add your first one above.
+      </p>
+
+      <footer class="mt-5 flex-justify-between gap-4 text-xs text-stone-500">
+        <p id="summary" role="status">0 tasks left/ 0 done</p>
+        <span aria-hidden="true">task</span>
+      </footer>
+    </main>
+  </body>
 </html>
