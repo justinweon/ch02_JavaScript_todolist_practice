@@ -1,0 +1,36 @@
+/* 연한 회색 타일 */
+.char-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 20px;
+  margin-right: 1.5px;
+
+  background-color: #e2ded2;
+  border: none;
+  border-radius: 0;
+
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  line-height: 1;
+  color: #171717;
+
+  text-shadow: none;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+/* TODO는 글자색만 파란색 */
+.char-cell.todo-blue {
+  color: #247cb0;
+}
+
+/* 빈 칸도 같은 타일 배경 유지 */
+.char-cell.empty {
+  color: transparent;
+}
+
+.char-cell.status-red {
+  color: #c62828;
+}

@@ -6,35 +6,97 @@
     <title>Todo-list</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="./js/todo.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
-  <body class="Min-h-screen bg-[#f5f3ec] font-mono text-[#292b26]">
-    <main class="max=auto max-w-3xl px-5 py-12 sm:px-8">
+  <body
+    class="flex justify-center min-h-screen bg-[#F7F1E2] font-['VT323',monospace] text-[#171717]"
+  >
+    <main class="w-full max-w-3xl px-5 py-12 sm:px-8">
       <h1 class="sr-only">Todo-list</h1>
+
+      <header
+        class="mb-6 flex items-end justify-between border-b-2 border-[#CFC8B8] pb-4"
+      >
+        <!-- 좌측: 비행기 아이콘 + Departures 타이틀 -->
+        <div class="flex items-center gap-3.5">
+          <!-- 노란 박스 안의 이륙 비행기 아이콘 -->
+          <div
+            class="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-[#CFC8B8] bg-[#E2DECF]"
+          >
+            <svg class="h-8 w-8" viewBox="0 0 48 48" fill="none">
+              <!-- 이륙하는 제트기 실루엣 -->
+              <path
+                d="M10 27 L25 20.5 L37 12 C38.5 11 41 12 40 14 L36.5 21.5 L43 24.5 L44 27 L36 26 L27.5 32.5 L17.5 31.5 L24 27 L14 27 L9.5 24.5 Z"
+                fill="#171717"
+              />
+              <!-- 활주로 지상선 -->
+              <rect
+                x="7"
+                y="36"
+                width="34"
+                height="2.5"
+                rx="1.2"
+                fill="#171717"
+              />
+            </svg>
+          </div>
+          <h1 class="text-3xl font-bold tracking-wider text-[#171717]">
+            Departures
+          </h1>
+        </div>
+        <!-- 우측: 기존 날짜 표시 유지 (공항 시계 스타일) -->
+        <div class="text-right">
+          <p id="today-date" class="text-lg tracking-widest text-[#171717]"></p>
+          <p
+            id="today-day"
+            class="text-xs uppercase tracking-wider text-[#171717]"
+          ></p>
+        </div>
+      </header>
 
       <form
         id="todo-form"
-        class="flex item-center gap-4 border-b border-[#292b26] pb-4"
+        class="mb-6 flex flex-wrap items-center gap-2.5 rounded-lg border border-[#CFC8B8] bg-[#F7F1E2] p-2.5"
       >
-        <span aria-hidden="true">+</span>
-
-        <label for="todo-input" class="sr-only">new task</label>
+        <label for ="todo-input" class="sr-only">NEW TASK</label>
         <input
           id="todo-input"
-          type="text"
-          placeholder="what needs doing?"
-          maxlength="200"
-          autocomplete="off"
-          requiredclass="min-2-0 flex-1 bg-transparent py-3 outline-none placeholder:text-stone-500 focus-visible:ring-1 focus-visible:ring-stone-500"
-        />
+          type ="text"
+          placeholder ="what needs doing? (enter destination)"
+          maxlength = "200"
+
+          required
+          class ="min-w-0 flex-1 rounded border border-[#CFC8B8] bg-[#E2DECF] px-3 py-2 text-sm uppercase text-[#247CB0] placeholder-[#706B60] outline-none focus:border-[#171717]">
+        
+        <label for ="label-input" class="sr-only"> COLOR LABEL</label>
+        <select
+          id="label-input"
+          class = "rounded border border-[#CFC8B8] bg-[#E2DECF] px-2.5 py-2 text-xs uppercase text-[#171717] outline-none focus:border-[#171717] cursor-pointer">
+          <option value = "DEV">DEV</option>
+          <option value = "URGENT">URGENT</option> 
+          <option value = "LIFE">LIFE</option>
+          <option value = "WORK">WORK</option>
+        </select>
+
         <button
           type="submit"
-          class="shrink-0 cursor-pointer bg-[#292b26] px-4 py-3 text-[#f5f3ec] hover:bg-stone-600"
+          class="cursor-pointer rounded bg-[#E2DECF] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#171717] hover:bg-[#CFC8B8] transition"
         >
-          [ add ]
+          Schedule
         </button>
       </form>
 
-      <nav aria-label="Filter tasks" class="my-7 flex gap-6 text-sm">
+      <nav
+        aria-label="Filter tasks"
+        class="my-7 flex gap-6 text-sm text-[#0047AB]"
+      >
         <button
           type="button"
           data-filter="all"
@@ -61,13 +123,21 @@
         </button>
       </nav>
 
-      <ul id="allTask" class="border-t border-stone-300"></ul>
+      <div class="flex items-center gap-4 px-3 py-2 text-xs font-bold uppercase tracking-widest text-[#171717] mb-2 font-mono">
+  <div class="flex-1 text-[#247CB0]">DESTINATION</div>
+  <div class="w-[120px]">LABEL</div>
+  <div class="w-[120px]">STATUS</div>
+</div>
+
+<ul id="allTask" class="bg-transparent"></ul>
+
+
 
       <p id="empty-message" class="py-10 text-sm text-stone-500">
         No tasks yet. Add your first one above.
       </p>
 
-      <footer class="mt-5 flex-justify-between gap-4 text-xs text-stone-500">
+      <footer class="mt-5 gap-4 text-xs text-stone-500">
         <p id="summary" role="status">0 tasks left/ 0 done</p>
         <span aria-hidden="true">task</span>
       </footer>

@@ -1,5 +1,6 @@
 const form = document.querySelector("#todo-form");
 const input = document.querySelector("#todo-input");
+const labelInput = document.querySelector("#label-input");
 const allTask = document.querySelector("#allTask");
 
 const filterButtons = document.querySelectorAll("[data-filter]");
@@ -11,10 +12,65 @@ const doneCount = document.querySelector("#done-count");
 const summary = document.querySelector("#summary");
 const emptyMessage = document.querySelector("#empty-message");
 
+const STORAGE_KEY = "departures-tasks";
+
+function loadTasks() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (saved === null) {
+      return [];
+    }
+
+    const data = JSON.parse(saved);
+
+    if (!Array.isArray(data)) {
+      throw new Error("저장된 데이터가 배열이 아님");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("할 일 불러오기 실패:", error);
+    alert("저장된 할 일을 불러오지 못했어요.");
+    return [];
+  }
+}
+
+function saveTasks() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  } catch (error) {
+    console.error("할 일 저장 실패:", error);
+    alert("저장하지 못했어요. 새로고침하면 변경 내용이 사라질 수 있어요.");
+  }
+}
+
+
 // 2. Store the app's current data.
-let tasks = [];
+let tasks = loadTasks();
 let currentFilter = "all";
-let nextId = 1;
+
+let nextId = tasks.reduce((maxId, task) => Math.max(maxId, task.id), 0) + 1;
+
+
+
+function renderTiles(text, totalSlots, colorClass = "") {
+  const cleanText = text.toUpperCase().slice(0, totalSlots);
+  const chars = cleanText.split("");
+  let html = chars
+    .map(
+      (char) =>
+        `<span class="char-cell ${colorClass}">${char === " " ? "&nbsp;" : char}</span>`,
+
+    )
+    .join("");
+  const emptyCount = totalSlots - chars.length;
+  // 레퍼런스처럼 남는 자리도 빈 타일 박스로 채워주기
+  if (emptyCount > 0) {
+    html += '<span class="char-cell empty">&nbsp;</span>'.repeat(emptyCount);
+  }
+  return html;
+}
 
 // 3. Add a task when the form is submitted.
 form.addEventListener("submit", (event) => {
@@ -29,11 +85,14 @@ form.addEventListener("submit", (event) => {
   const newTask = {
     id: nextId,
     text: text,
+    label: labelInput.value,
+    status: labelInput.value === "URGENT" ? "FINAL CALL" : "ON TIME",
     done: false,
   };
 
   tasks.push(newTask);
   nextId += 1;
+  saveTasks();
 
   input.value = "";
 
@@ -72,78 +131,102 @@ function renderTasks() {
   visibleTasks.forEach((task) => {
     const row = document.createElement("li");
 
-    row.className =
-      "flex flex-wrap items-center gap-3 border-b border-stone-300 py-6 sm:gap-4";
+    row.className = "group flex items-center gap-4 px-3 py-2 text-xl";
 
-    // This template contains fixed markup, not user-entered text.
+
+    const todoHtml = renderTiles(task.text, 20, "todo-blue");
+    const labelHtml = renderTiles(task.label, 6);
+    const statusColor = task.status === "FINAL CALL" ? "status-red" : "";
+    const statusHtml = renderTiles(task.status, 10, statusColor);
+
+
     row.innerHTML = `
-      <label class="relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
-        <input
-          type="checkbox"
-          class="peer sr-only"
-          aria-label="Mark task as done"
-        />
-        <span
-          aria-hidden="true"
-          class="peer-focus-visible:outline peer-focus-visible:outline-1"
-        >[ ]</span>
-      </label>
+      <!-- 2. TODO (20칸 타일 + 호버 액션) -->
+      <div class="flex-1 flex items-center overflow-hidden">
+        <div data-task-text class="flex items-center flex-nowrap">
+          ${todoHtml}
+        </div>
+        <div class="ml-2 flex gap-2 text-xs opacity-0 group-hover:opacity-100 transition shrink-0">
+          <button type="button" data-edit class="cursor-pointer text-[#171717] hover:underline"
+>[edit]</button>
+          <button type="button" data-delete class="cursor-pointer text-[#171717] hover:underline"
+>[cancel]</button>
+        </div>
+      </div>
 
-      <span
-        data-task-text
-        class="min-w-0 flex-1 break-words"
-      ></span>
-
-      <div class="ml-auto flex gap-3 text-xs text-stone-600">
+            <div class="w-[100px] flex items-center flex-shrink-0">
         <button
           type="button"
-          data-edit
-          class="min-h-11 cursor-pointer hover:text-black hover:underline"
-        >[ edit ]</button>
+          data-label-btn
+          title="labe-change"
+          class="cursor-pointer flex items-center"
+        >
+          ${labelHtml}
+        </button>
+      </div>
 
-        <button
-          type="button"
-          data-delete
-          class="min-h-11 cursor-pointer hover:text-black hover:underline"
-        >[ delete ]</button>
+
+      <div class="w-[140px] flex items-center justify-end flex-shrink-0">
+        <button type="button" data-status-btn title="상태 변경" class="cursor-pointer flex items-center transition hover:brightness-125">
+          ${statusHtml}
+        </button>
       </div>
     `;
 
-    const checkbox = row.querySelector('input[type="checkbox"]');
-    const checkboxSymbol = row.querySelector("[aria-hidden]");
-    const taskText = row.querySelector("[data-task-text]");
     const editButton = row.querySelector("[data-edit]");
     const deleteButton = row.querySelector("[data-delete]");
+    const statusBtn = row.querySelector("[data-status-btn]");
+    const taskText = row.querySelector("[data-task-text]");
+    const labelBtn = row.querySelector("[data-label-btn]");
 
-    // Fill this row with its task's data.
-    taskText.textContent = task.text;
-    checkbox.checked = task.done;
-    checkboxSymbol.textContent = task.done ? "[•]" : "[ ]";
+    labelBtn.addEventListener("click", () => {
+      const labelCycle = ["DEV", "URGENT", "LIFE", "WORK"];
+      const currentIndex = labelCycle.indexOf(task.label);
+      const nextIndex = (currentIndex + 1) % labelCycle.length;
+
+      task.label = labelCycle[nextIndex];
+
+      if (!task.done) {
+        if (task.label === "URGENT") {
+          task.status = "FINAL CALL";
+        } else if (task.status === "FINAL CALL") {
+          task.status = "ON TIME";
+        }
+      }
+      saveTasks();
+      renderTasks();
+
+    });
 
     if (task.done) {
-      taskText.classList.add("line-through", "text-stone-500");
-      checkbox.setAttribute("aria-label", "Mark task as active");
+      row.classList.add("opacity-50");
     }
 
-    // Complete or uncomplete this task.
-    checkbox.addEventListener("change", () => {
-      task.done = checkbox.checked;
+    statusBtn.addEventListener("click", () => {
+      const statusCycle =
+        task.label === "URGENT"
+          ? ["FINAL CALL", "DONE"]
+          : ["ON TIME", "BOARDING", "DONE"];
+      const currentIndex = statusCycle.indexOf(task.status);
+      const nextIndex = (currentIndex + 1) % statusCycle.length;
+      task.status = statusCycle[nextIndex];
+      task.done = task.status === "DONE";
+      saveTasks();
       renderTasks();
     });
-
-    // Delete this task.
+    // 삭제 이벤트
     deleteButton.addEventListener("click", () => {
       tasks = tasks.filter((item) => item.id !== task.id);
+      saveTasks();
       renderTasks();
     });
-
-    // Edit this task.
+    // 수정 이벤트
     editButton.addEventListener("click", () => {
       startEditing(task, taskText, editButton);
     });
-
     allTask.append(row);
   });
+
 
   updateSummary();
 
@@ -183,7 +266,8 @@ function startEditing(task, taskText, editButton) {
       aria-label="Edit task"
       maxlength="200"
       required
-      class="min-w-0 flex-1 border-b border-stone-600 bg-transparent py-2 outline-none focus-visible:ring-1 focus-visible:ring-stone-500"
+      class="min-w-0 flex-1 border-b border-[#CFC8B8] bg-transparent py-2 text-[#247CB0] outline-none focus-visible:ring-1 focus-visible:ring-[#171717]"
+
     />
 
     <button
@@ -219,6 +303,7 @@ function startEditing(task, taskText, editButton) {
     }
 
     task.text = updatedText;
+    saveTasks();
     renderTasks();
   });
 
@@ -247,3 +332,25 @@ function updateSummary() {
 
 // 8. Draw the initial empty state.
 renderTasks();
+
+function updateToday() {
+  const today = new Date();
+
+  document.querySelector("#today-date").textContent = today.toLocaleDateString(
+    "en-US",
+    {
+      month: "long",
+      day: "numeric",
+    },
+  );
+
+  document.querySelector("#today-day").textContent = today.toLocaleDateString(
+    "en-US",
+    {
+      weekday: "long",
+    },
+  );
+}
+
+updateToday();
+setInterval(updateToday, 60_000);
